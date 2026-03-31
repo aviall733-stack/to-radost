@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To Radost — Ultimate Kitchen Hub 2026</title>
+    <style>
+        :root {
+            --primary: #fbbf24; --primary-dark: #f59e0b;
+            --bg: #f8fafc; --card: #ffffff;
+            --text: #0f172a; --text-light: #64748b;
+            --border: #e2e8f0; --accent: #10b981;
+            --sale: #ef4444; --timer-bg: #1e293b;
+        }
+
+        * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg); color: var(--text); margin: 0; padding: 10px; display: flex; justify-content: center; }
+        
+        .app-container { width: 100%; max-width: 1200px; min-height: 95vh; background: var(--card); border-radius: 32px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.1); display: flex; flex-direction: column; margin: 20px 0; }
+        header { padding: 20px 40px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: #fff; position: sticky; top: 0; z-index: 100; }
+        .logo { font-weight: 900; font-size: 1.6rem; color: var(--primary-dark); cursor: pointer; text-transform: uppercase; }
+        
+        .btn-signup { background: var(--text); color: white; border: none; padding: 10px 20px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.2s; font-size: 14px; }
+        .btn-signup:hover { background: var(--primary-dark); color: var(--text); }
+
+        #main-screen, #results-screen, #recipe-card-screen { padding: 30px 40px; animation: fadeIn 0.4s ease-out; }
+
+        .controls-row { display: flex; gap: 15px; margin-bottom: 25px; flex-wrap: wrap; }
+        .search-input { flex-grow: 1; padding: 15px 20px; border: 2px solid var(--border); border-radius: 14px; font-size: 1rem; outline: none; }
+        .sort-select { padding: 15px; border: 2px solid var(--border); border-radius: 14px; background: #fff; font-weight: 600; cursor: pointer; }
+
+        .cuisine-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 15px; scrollbar-width: none; }
+        .tab { padding: 8px 18px; background: #f1f5f9; border-radius: 10px; cursor: pointer; font-weight: 600; white-space: nowrap; font-size: 14px; }
+        .tab.active { background: var(--primary); color: #451a03; }
+
+        .recipe-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
+        .recipe-item-card { background: #fff; border: 1px solid var(--border); border-radius: 20px; overflow: hidden; cursor: pointer; transition: 0.3s; position: relative; }
+        .recipe-item-card:hover { transform: translateY(-5px); border-color: var(--primary); }
+        .recipe-item-card img { width: 100%; height: 160px; object-fit: cover; }
+        .recipe-item-info { padding: 15px; }
+
+        .sale-badge { position: absolute; top: 10px; right: 10px; background: var(--sale); color: white; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 800; z-index: 5; }
+
+        .timer-panel { background: var(--timer-bg); color: white; padding: 25px; border-radius: 24px; margin-bottom: 30px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px; }
+        .timer-display { font-size: 3rem; font-weight: 800; font-family: monospace; color: var(--primary); }
+        .timer-controls { display: flex; gap: 10px; }
+        .timer-btn { background: rgba(255,255,255,0.1); border: none; color: white; padding: 10px 15px; border-radius: 10px; cursor: pointer; font-weight: 600; }
+        .timer-btn:hover { background: var(--primary); color: #000; }
+
+        .nutrients-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; }
+        .nutrient-item { text-align: center; background: #f8fafc; padding: 10px; border-radius: 10px; border: 1px solid var(--border); }
+        .nutrient-val { display: block; font-weight: 800; font-size: 14px; }
+        .nutrient-label { font-size: 10px; color: var(--text-light); text-transform: uppercase; }
+
+        .pro-tip { background: #fffbeb; border-left: 4px solid var(--primary); padding: 15px; border-radius: 12px; margin: 20px 0; font-style: italic; color: #92400e; }
+        .ingredient-card { background: #f8fafc; padding: 12px; border-radius: 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; cursor: pointer; border: 1px solid var(--border); transition: 0.2s; }
+        .ingredient-card.checked { opacity: 0.4; text-decoration: line-through; background: #e2e8f0; }
+        .checkbox { width: 18px; height: 18px; border-radius: 4px; border: 2px solid var(--text-light); position: relative; }
+        .checked .checkbox { background: var(--accent); border-color: var(--accent); }
+        .checked .checkbox::after { content: '✓'; color: white; position: absolute; left: 2px; top: -3px; font-size: 12px; }
+
+        .recipe-content { display: grid; grid-template-columns: 350px 1fr; gap: 40px; }
+        .step-item { display: flex; gap: 15px; margin-bottom: 20px; }
+        .step-num { width: 28px; height: 28px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; flex-shrink: 0; }
+
+        .btn-primary { background: var(--primary); color: #451a03; border: none; padding: 16px; border-radius: 12px; font-weight: 700; cursor: pointer; width: 100%; font-size: 1rem; }
+        .btn-back { background: #f1f5f9; color: var(--text); border: none; padding: 10px 18px; border-radius: 10px; font-weight: 600; cursor: pointer; margin-bottom: 15px; }
+
+        .hidden { display: none; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; } }
+        @media (max-width: 900px) { .recipe-content { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <header>
+        <div class="logo" onclick="location.reload()">To Radost</div>
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <div id="global-timer-status" style="font-size: 12px; font-weight: 800; color: var(--sale);"></div>
+            <button class="btn-signup" onclick="alert('Registration opening soon!')">Sign Up</button>
+        </div>
+    </header>
+
+    <div id="main-screen">
+        <h2 style="font-size: 2rem; font-weight: 900; margin: 0 0 10px 0;">Kitchen Assistant 2026</h2>
+        <div class="controls-row">
+            <input type="text" id="recipe-search" class="search-input" placeholder="Search 25 master recipes..." oninput="render()">
+            <select id="sort-order" class="sort-select" onchange="render()">
+                <option value="default">Featured</option>
+                <option value="sale">Most Discounts ⚡</option>
+                <option value="price-low">Cheapest Total 💰</option>
+                <option value="kcal-low">Low Calorie 🥗</option>
+                <option value="diff-low">Easiest to Cook 🍳</option>
+            </select>
+        </div>
+        <div class="cuisine-tabs">
+            <div class="tab active" onclick="setCategory('All', this)">All</div>
+            <div class="tab" onclick="setCategory('Slovak', this)">🇸🇰 Slovak</div>
+            <div class="tab" onclick="setCategory('Italian', this)">🇮🇹 Italian</div>
+            <div class="tab" onclick="setCategory('American', this)">🇺🇸 American</div>
+            <div class="tab" onclick="setCategory('European', this)">🇪🇺 European</div>
+            <div class="tab" onclick="setCategory('Bakery', this)">🥐 Bakery</div>
+        </div>
+        <div class="recipe-grid" id="recipe-grid"></div>
+    </div>
+
+    <div id="results-screen" class="hidden">
+        <button class="btn-back" onclick="showScreen('main')">← Back to Menu</button>
+        <div id="results-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 25px;"></div>
+    </div>
+
+    <div id="recipe-card-screen" class="hidden">
+        <button class="btn-back" onclick="showScreen('results')">← Back to Market</button>
+        <div class="timer-panel">
+            <div><div id="timer-display" class="timer-display">00:00</div></div>
+            <div class="timer-controls">
+                <button class="timer-btn" onclick="setTimer(5)">5m</button>
+                <button class="timer-btn" onclick="setTimer(10)">10m</button>
+                <button class="timer-btn" onclick="setTimer(20)">20m</button>
+                <button id="timer-toggle" class="timer-btn" style="background: var(--accent);" onclick="toggleTimer()">START</button>
+                <button class="timer-btn" style="background: var(--sale);" onclick="resetTimer()">RESET</button>
+            </div>
+        </div>
+        <div style="display: flex; gap: 30px; align-items: center; margin-bottom: 30px; flex-wrap: wrap;">
+            <img id="recipe-img" style="width: 150px; height: 150px; border-radius: 24px; object-fit: cover; border: 4px solid var(--primary);">
+            <div style="flex: 1;">
+                <h1 id="recipe-title" style="margin:0; font-size: 2.5rem;"></h1>
+                <p id="recipe-meta" style="color: var(--text-light); font-weight: 700; margin: 5px 0;"></p>
+                <div id="recipe-nutrients" class="nutrients-grid" style="max-width: 400px;"></div>
+            </div>
+        </div>
+        <div class="recipe-content">
+            <div>
+                <h3>Ingredients & Prep</h3>
+                <div id="inventory-list" style="padding: 12px; background: #fef3c7; border-radius: 12px; margin-bottom:15px; font-weight:700; color:var(--primary-dark); font-size: 13px;"></div>
+                <div id="ingredients-list"></div>
+            </div>
+            <div>
+                <h3>Cooking Method</h3>
+                <div id="steps-list"></div>
+                <div id="pro-tip" class="pro-tip"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const RECIPES = [
+    { 
+        title: "Bryndzové Halušky", 
+        cat: "Slovak", 
+        servingSize: 450, 
+        hero: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTVTEvCK3yAlkHx4vDosOYcHDG7mkQ58HKzDw&s", 
+        macros: {k:850, p:32, f:45, c:78}, 
+        inv: ["Grater", "Large Pot", "Pan"], 
+        tip: "For the most authentic taste, fry the bacon until it's 'glassy' and use the rendered fat to coat the dumplings before adding cheese.", 
+        difficulty: 2, 
+        ingredients: [
+            {n:"Potatoes (1kg)", l:0.9, k:0.85, b:1.1, t:0.95, c:1.0, sale:true, old:1.4},
+            {n:"Flour (500g)", l:0.6, k:0.55, b:0.7, t:0.65, c:0.75},
+            {n:"Bryndza", l:3.2, k:3.1, b:3.8, t:3.4, c:3.6, sale:true, old:4.5},
+            {n:"Bacon", l:1.8, k:1.7, b:2.2, t:1.9, c:2.1},
+            {n:"Sour Cream", l:0.9, k:0.8, b:1.1, t:0.9, c:1.0, sale:true, old:1.3},
+            {n:"Chives", l:0.5, k:0.45, b:0.6, t:0.55, c:0.65},
+            {n:"Salt/Pepper", l:0.3, k:0.25, b:0.4, t:0.3, c:0.35}
+        ], 
+        steps:[{t:"Dough Prep",d:"Finely grate raw potatoes into a bowl. Drain excess water, then mix with flour and salt until you get a thick, sticky batter."}, {t:"Boiling",d:"Drop small pieces of dough into salted boiling water using a teaspoon or a haluškár. Cook until they all surface (about 3 mins)."}, {t:"Final Touch",d:"Drain the dumplings, mix immediately with fresh bryndza and sour cream. Top with plenty of crispy fried bacon and fresh chives."}] 
+    },
+    { 
+        title: "Kapustnica", 
+        cat: "Slovak", 
+        servingSize: 500, 
+        hero: "https://images.unsplash.com/photo-1547592166-23ac45744acd?w=500", 
+        macros: {k:420, p:24, f:28, c:15}, 
+        inv: ["Soup Pot"], 
+        tip: "If the soup is too sour, rinse half of the sauerkraut before cooking. Adding a bit of honey can balance the acidity perfectly.", 
+        difficulty: 2, 
+        ingredients: [
+            {n:"Sauerkraut", l:1.2, k:1.1, b:1.5, t:1.3, c:1.4, sale:true, old:2.0},
+            {n:"Smoked Sausage", l:3.5, k:3.3, b:4.0, t:3.6, c:3.8},
+            {n:"Dried Mushrooms", l:2.5, k:2.4, b:3.0, t:2.7, c:2.9},
+            {n:"Pork Shoulder", l:4.2, k:4.0, b:4.8, t:4.3, c:4.6, sale:true, old:5.5},
+            {n:"Garlic", l:0.4, k:0.35, b:0.5, t:0.45, c:0.55},
+            {n:"Prunes", l:1.5, k:1.4, b:1.8, t:1.6, c:1.7},
+            {n:"Paprika", l:0.6, k:0.55, b:0.8, t:0.7, c:0.75}
+        ], 
+        steps:[{t:"Infusion",d:"Simmer the sauerkraut with dried mushrooms, prunes, and bay leaves in water for 40 minutes until the kraut softens."}, {t:"Meat & Spice",d:"Add diced pork shoulder and sliced sausages. Season with garlic and smoked paprika. Cook until meat is tender."}, {t:"Maturation",d:"Let the soup sit for at least an hour. Kapustnica always tastes better the next day after the flavors have fully melded."}] 
+    },
+    { 
+        title: "Sviečková", 
+        cat: "Slovak", 
+        servingSize: 480, 
+        hero: "https://images.unsplash.com/photo-1603360946369-dc9bb6258143?w=500", 
+        macros: {k:920, p:45, f:50, c:85}, 
+        inv: ["Pot", "Blender"], 
+        tip: "Do not rush the vegetable roasting; the deeper the brown color of the carrots and onions, the richer your sauce will be.", 
+        difficulty: 3, 
+        ingredients: [
+            {n:"Beef Chuck", l:8.5, k:8.2, b:9.5, t:8.8, c:9.2},
+            {n:"Cooking Cream", l:1.2, k:1.1, b:1.5, t:1.3, c:1.4},
+            {n:"Root Veggies", l:2.0, k:1.8, b:2.5, t:2.2, c:2.4, sale:true, old:3.0},
+            {n:"Dumplings (Frozen)", l:2.2, k:2.0, b:2.8, t:2.4, c:2.6},
+            {n:"Mustard", l:0.8, k:0.75, b:1.0, t:0.85, c:0.95},
+            {n:"Cranberries", l:1.5, k:1.4, b:1.9, t:1.6, c:1.8, sale:true, old:2.4},
+            {n:"Lemon", l:0.5, k:0.45, b:0.6, t:0.5, c:0.6}
+        ], 
+        steps:[{t:"Roasting",d:"Sear the beef on all sides. Roast it in the oven with root vegetables (carrots, celery, parsley root) until everything is tender."}, {t:"Creamy Sauce",d:"Remove the meat. Blend the roasted vegetables with cooking cream and mustard until perfectly silky and smooth."}, {t:"Plating",d:"Slice the beef and serve with the warm sauce, steamed bread dumplings, a dollop of cranberries, and a slice of lemon."}] 
+    },
+    { 
+        title: "Vyprážaný Syr", 
+        cat: "Slovak", 
+        servingSize: 400, 
+        hero: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTOyPRxWbXL1ec535Gbvko4Qg_i0-_0mIohWw&s", 
+        macros: {k:780, p:38, f:55, c:40}, 
+        inv: ["Frying Pan"], 
+        tip: "Double-bread the cheese (flour-egg-crumbs-egg-crumbs) to create a thick shell that prevents the cheese from leaking out.", 
+        difficulty: 1, 
+        ingredients: [
+            {n:"Edam Cheese", l:2.5, k:2.3, b:3.0, t:2.6, c:2.8, sale:true, old:3.8},
+            {n:"Breadcrumbs", l:0.8, k:0.75, b:1.0, t:0.9, c:0.95},
+            {n:"Eggs (10pcs)", l:1.9, k:1.8, b:2.2, t:2.0, c:2.1, sale:true, old:2.8},
+            {n:"Tartar Sauce", l:1.2, k:1.1, b:1.5, t:1.3, c:1.4},
+            {n:"Potatoes", l:0.9, k:0.8, b:1.1, t:0.95, c:1.05},
+            {n:"Oil (1L)", l:1.8, k:1.7, b:2.1, t:1.9, c:2.0},
+            {n:"Flour", l:0.6, k:0.55, b:0.7, t:0.65, c:0.75}
+        ], 
+        steps:[{t:"Preparation",d:"Cut cheese into 1.5cm thick slabs. Freeze them for 15 minutes before breading to ensure they don't melt too fast."}, {t:"Breading",d:"Coat each slice in flour, then beaten eggs, and finally breadcrumbs. Repeat the egg and crumb step for security."}, {t:"Frying",d:"Fry in hot oil for about 2 minutes per side until deep golden. Serve immediately with tartar sauce and boiled potatoes."}] 
+    },
+    { 
+        title: "Parené Buchty", 
+        cat: "Slovak", 
+        servingSize: 350, 
+        hero: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=500", 
+        macros: {k:650, p:12, f:25, c:95}, 
+        inv: ["Steamer"], 
+        tip: "Make sure the water in the steamer is boiling vigorously before putting the buns in, and don't open the lid during steaming.", 
+        difficulty: 3, 
+        ingredients: [
+            {n:"Pastry Flour", l:0.9, k:0.8, b:1.1, t:0.95, c:1.0},
+            {n:"Plum Jam", l:2.5, k:2.3, b:3.0, t:2.7, c:2.9, sale:true, old:3.5},
+            {n:"Yeast", l:0.3, k:0.25, b:0.4, t:0.35, c:0.4},
+            {n:"Milk (1L)", l:0.8, k:0.75, b:1.0, t:0.9, c:0.95, sale:true, old:1.2},
+            {n:"Butter", l:2.2, k:2.1, b:2.6, t:2.3, c:2.5},
+            {n:"Poppy Seeds", l:1.1, k:1.0, b:1.4, t:1.2, c:1.3},
+            {n:"Sugar", l:0.9, k:0.85, b:1.0, t:0.9, c:1.1}
+        ], 
+        steps:[{t:"Dough Rising",d:"Mix flour, warm milk, and yeast. Knead into a soft dough and let it rise in a warm spot for 60 minutes."}, {t:"Filling",d:"Flatten the dough, cut into squares, and place a spoon of plum jam in each. Seal them tightly into round buns."}, {t:"Steaming",d:"Steam for 10-12 minutes. Drizzle with melted butter and dust heavily with ground poppy seeds and sugar."}] 
+    },
+    { 
+        title: "Authentic Carbonara", 
+        cat: "Italian", 
+        servingSize: 400, 
+        hero: "https://images.unsplash.com/photo-1612874742237-6526221588e3?w=500", 
+        macros: {k:720, p:30, f:40, c:65}, 
+        inv: ["Pasta Pot", "Bowl"], 
+        tip: "Never add cream! The creaminess comes from the emulsion of egg yolks, cheese, and starchy pasta water.", 
+        difficulty: 2, 
+        ingredients: [
+            {n:"Guanciale", l:3.5, k:3.3, b:4.2, t:3.8, c:4.0},
+            {n:"Spaghetti", l:0.9, k:0.85, b:1.2, t:1.0, c:1.1, sale:true, old:1.6},
+            {n:"Pecorino Romano", l:3.0, k:2.8, b:3.5, t:3.2, c:3.4},
+            {n:"Fresh Eggs", l:1.9, k:1.8, b:2.2, t:2.0, c:2.1, sale:true, old:2.8},
+            {n:"Black Pepper", l:1.1, k:1.0, b:1.3, t:1.2, c:1.25},
+            {n:"Garlic", l:0.4, k:0.35, b:0.5, t:0.4, c:0.45},
+            {n:"Parmesan", l:2.5, k:2.3, b:2.9, t:2.7, c:2.8}
+        ], 
+        steps:[{t:"Pork Prep",d:"Fry the guanciale (or pancetta) in a pan until the fat is rendered and the meat is perfectly crispy. Set aside."}, {t:"The Sauce",d:"Whisk egg yolks with grated Pecorino and lots of black pepper in a bowl until you get a thick paste."}, {t:"The Emulsion",d:"Toss hot spaghetti into the pork pan, then remove from heat. Stir in the egg mixture with a splash of pasta water until creamy."}] 
+    },
+    { 
+        title: "Pizza Margherita", 
+        cat: "Italian", 
+        servingSize: 350, 
+        hero: "https://images.unsplash.com/photo-1604068549290-dea0e4a305ca?w=500", 
+        macros: {k:880, p:34, f:28, c:120}, 
+        inv: ["Baking Stone"], 
+        tip: "Preheat your oven to its absolute maximum temperature for at least 30 minutes before baking to get a crispy crust.", 
+        difficulty: 2, 
+        ingredients: [
+            {n:"Pizza Dough", l:1.1, k:1.0, b:1.5, t:1.2, c:1.3},
+            {n:"Mozzarella", l:2.2, k:2.0, b:2.8, t:2.4, c:2.6, sale:true, old:3.5},
+            {n:"Tomato Passata", l:1.2, k:1.1, b:1.4, t:1.3, c:1.35, sale:true, old:1.8},
+            {n:"Fresh Basil", l:1.5, k:1.4, b:1.8, t:1.6, c:1.7},
+            {n:"Olive Oil", l:4.5, k:4.2, b:5.2, t:4.8, c:5.0},
+            {n:"Garlic", l:0.4, k:0.35, b:0.5, t:0.4, c:0.45},
+            {n:"Oregano", l:0.8, k:0.75, b:1.0, t:0.9, c:0.95}
+        ], 
+        steps:[{t:"Dough Shaping",d:"Gently stretch the dough into a circle, leaving the edges slightly thicker for a nice crust puff (cornicione)."}, {t:"Topping",d:"Spread a thin layer of passata, add torn mozzarella, and a drizzle of olive oil. Don't overdo the sauce or it will be soggy."}, {t:"Baking",d:"Bake for 7-10 minutes until the cheese is bubbling and the crust has charred spots. Add fresh basil immediately after taking it out."}] 
+    },
+    { 
+        title: "Lasagna", 
+        cat: "Italian", 
+        servingSize: 450, 
+        hero: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=500", 
+        macros: {k:1100, p:55, f:65, c:90}, 
+        inv: ["Baking Dish"], 
+        tip: "Cook your Ragù meat sauce for at least 2 hours. The longer it simmers, the more the flavors develop and the meat softens.", 
+        difficulty: 3, 
+        ingredients: [
+            {n:"Minced Beef", l:5.0, k:4.8, b:6.2, t:5.5, c:5.8, sale:true, old:7.0},
+            {n:"Pasta Sheets", l:2.0, k:1.9, b:2.5, t:2.2, c:2.4},
+            {n:"Béchamel Sauce", l:1.8, k:1.7, b:2.1, t:1.9, c:2.0},
+            {n:"Grated Cheese", l:2.5, k:2.3, b:3.0, t:2.7, c:2.9, sale:true, old:3.8},
+            {n:"Celery & Carrots", l:1.1, k:1.0, b:1.4, t:1.2, c:1.3},
+            {n:"Onion", l:0.3, k:0.25, b:0.4, t:0.35, c:0.4},
+            {n:"Red Wine", l:4.5, k:4.2, b:5.5, t:4.8, c:5.0}
+        ], 
+        steps:[{t:"Meat Sauce",d:"Sauté veggies, brown the beef, add red wine and tomatoes. Simmer on low heat until thick and fragrant."}, {t:"Layering",d:"Start with sauce, then pasta, then béchamel. Repeat for at least 4 layers. Finish with a thick coating of grated cheese."}, {t:"Baking",d:"Cover with foil and bake for 25 mins, then remove foil and bake for 15 more until the top is bubbly and golden brown."}] 
+    },
+    { 
+        title: "Mushroom Risotto", 
+        cat: "Italian", 
+        servingSize: 380, 
+        hero: "https://images.unsplash.com/photo-1476124369491-e7addf5db371?w=500", 
+        macros: {k:580, p:14, f:22, c:75}, 
+        inv: ["Wide Pan"], 
+        tip: "Warm the stock before adding it to the rice. Adding cold liquid will shock the rice and stop the cooking process.", 
+        difficulty: 2, 
+        ingredients: [
+            {n:"Arborio Rice", l:2.2, k:2.1, b:2.8, t:2.4, c:2.6},
+            {n:"Champignons", l:1.8, k:1.7, b:2.2, t:1.9, c:2.1, sale:true, old:2.8},
+            {n:"Wild Mushrooms", l:4.5, k:4.2, b:5.5, t:4.8, c:5.2},
+            {n:"Veggie Stock", l:0.9, k:0.8, b:1.2, t:1.0, c:1.1},
+            {n:"Dry White Wine", l:3.5, k:3.3, b:4.2, t:3.8, c:4.0, sale:true, old:5.5},
+            {n:"Butter", l:2.2, k:2.1, b:2.6, t:2.3, c:2.5},
+            {n:"Onion", l:0.3, k:0.25, b:0.4, t:0.35, c:0.4}
+        ], 
+        steps:[{t:"Rice Toasting",d:"Sauté onions and mushrooms. Add rice and toast it for 2 mins until the edges become translucent."}, {t:"Deglazing",d:"Pour in the white wine and stir until completely absorbed. This adds the essential acidity to the dish."}, {t:"The Process",d:"Add hot stock one ladle at a time, stirring constantly. Wait until each ladle is absorbed before adding the next. Finish with butter."}] 
+    },
+    { 
+        title: "Tiramisu", 
+        cat: "Italian", 
+        servingSize: 220, 
+        hero: "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=500", 
+        macros: {k:540, p:10, f:38, c:45}, 
+        inv: ["Electric Whisk"], 
+        tip: "Quickly dip the ladyfingers in coffee. If they soak for more than a second, they will turn into mush in the final dessert.", 
+        difficulty: 1, 
+        ingredients: [
+            {n:"Mascarpone", l:3.5, k:3.3, b:4.2, t:3.8, c:4.0, sale:true, old:5.0},
+            {n:"Ladyfingers", l:1.5, k:1.4, b:2.0, t:1.7, c:1.9},
+            {n:"Eggs", l:1.9, k:1.8, b:2.2, t:2.0, c:2.1, sale:true, old:2.8},
+            {n:"Espresso Coffee", l:1.8, k:1.7, b:2.2, t:1.9, c:2.0},
+            {n:"Cocoa Powder", l:1.2, k:1.1, b:1.5, t:1.3, c:1.4, sale:true, old:2.0},
+            {n:"Cane Sugar", l:1.1, k:1.0, b:1.3, t:1.2, c:1.2},
+            {n:"Amaretto", l:5.5, k:5.2, b:6.5, t:5.8, c:6.0}
+        ], 
+        steps:[{t:"Cream Base",d:"Whisk egg yolks with sugar, then fold in mascarpone. Separately, whip egg whites and fold them in for a light texture."}, {t:"Assembly",d:"Dip ladyfingers in espresso mixed with Amaretto. Layer them in a dish, followed by the cream. Repeat layers twice."}, {t:"Chilling",d:"Refrigerate for at least 6 hours. Dust with a generous layer of high-quality cocoa powder right before serving."}] 
+    },
+    { 
+        title: "Double Smash Burger", 
+        cat: "American", 
+        servingSize: 420, 
+        hero: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500", 
+        macros: {k:950, p:48, f:65, c:35}, 
+        inv: ["Cast Iron Skillet"], 
+        tip: "Use meat with at least 20% fat content. The fat is what creates the crispy, caramelized crust on the patty.", 
+        difficulty: 1, 
+        ingredients: [
+            {n:"Beef Mince 20%", l:5.2, k:5.0, b:6.5, t:5.8, c:6.0, sale:true, old:7.5},
+            {n:"Burger Buns", l:1.5, k:1.4, b:2.0, t:1.7, c:1.8},
+            {n:"Cheddar Slices", l:1.8, k:1.7, b:2.2, t:1.9, c:2.0, sale:true, old:2.8},
+            {n:"Iceberg Lettuce", l:1.1, k:1.0, b:1.4, t:1.2, c:1.3},
+            {n:"Red Onion", l:0.4, k:0.35, b:0.5, t:0.4, c:0.45},
+            {n:"Pickles", l:0.9, k:0.8, b:1.2, t:1.0, c:1.1, sale:true, old:1.5},
+            {n:"Burger Sauce", l:1.4, k:1.3, b:1.7, t:1.5, c:1.6}
+        ], 
+        steps:[{t:"The Smash",d:"Roll meat into balls. Place on a piping hot pan and smash flat with a heavy spatula. Season heavily with salt and pepper."}, {t:"Caramelization",d:"Cook for 2 mins until a dark crust forms. Flip, add cheese immediately, and cover for 30 seconds to melt."}, {t:"Build",d:"Toast the buns. Add sauce, lettuce, onion, and pickles. Stack two patties on each bun and enjoy the juice."}] 
+    },
+    { 
+        title: "Buffalo Wings", 
+        cat: "American", 
+        servingSize: 380, 
+        hero: "https://images.unsplash.com/photo-1527477396000-e27163b481c2?w=500", 
+        macros: {k:1200, p:70, f:85, c:10}, 
+        inv: ["Oven Rack"], 
+        tip: "For extra crispy wings without frying, coat them in a little baking powder before putting them in the oven.", 
+        difficulty: 1, 
+        ingredients: [
+            {n:"Chicken Wings", l:4.2, k:4.0, b:5.5, t:4.6, c:4.9, sale:true, old:6.2},
+            {n:"Hot Sauce", l:2.0, k:1.9, b:2.5, t:2.2, c:2.4},
+            {n:"Butter", l:2.2, k:2.1, b:2.6, t:2.3, c:2.5, sale:true, old:3.2},
+            {n:"Blue Cheese Dip", l:1.8, k:1.7, b:2.2, t:1.9, c:2.0},
+            {n:"Celery Sticks", l:0.9, k:0.85, b:1.2, t:1.0, c:1.1},
+            {n:"Garlic Powder", l:0.7, k:0.65, b:0.9, t:0.8, c:0.85, sale:true, old:1.2},
+            {n:"Honey", l:3.2, k:3.0, b:3.8, t:3.4, c:3.6}
+        ], 
+        steps:[{t:"Crisping",d:"Dry the wings thoroughly. Bake on a rack at 220°C for 40-50 minutes, turning halfway through, until the skin is golden and brittle."}, {t:"Sauce Glaze",d:"Melt butter and whisk in the hot sauce, honey, and garlic powder. Toss the hot wings in a large bowl with the sauce."}, {t:"Serving",d:"Plate immediately while crispy. Serve with cold celery sticks and a side of creamy blue cheese dressing."}] 
+    },
+    { 
+        title: "BBQ Ribs", 
+        cat: "American", 
+        servingSize: 550, 
+        hero: "https://images.unsplash.com/photo-1544025162-d76694265947?w=500", 
+        macros: {k:1400, p:85, f:95, c:40}, 
+        inv: ["Foil", "Grill"], 
+        tip: "Remove the thin membrane (silverskin) from the back of the ribs before seasoning so the spices can reach the meat.", 
+        difficulty: 3, 
+        ingredients: [
+            {n:"Pork Ribs", l:8.0, k:7.8, b:9.5, t:8.5, c:8.9},
+            {n:"BBQ Glaze", l:2.5, k:2.3, b:3.0, t:2.7, c:2.9, sale:true, old:3.5},
+            {n:"Dry Rub Spices", l:1.5, k:1.4, b:1.9, t:1.7, c:1.8, sale:true, old:2.5},
+            {n:"Apple Juice", l:1.2, k:1.1, b:1.5, t:1.3, c:1.4},
+            {n:"Coleslaw Mix", l:1.8, k:1.7, b:2.1, t:1.9, c:2.0, sale:true, old:2.6},
+            {n:"Mayo", l:1.4, k:1.3, b:1.7, t:1.5, c:1.6},
+            {n:"Corn on Cob", l:1.9, k:1.8, b:2.4, t:2.1, c:2.3}
+        ], 
+        steps:[{t:"Dry Rub",d:"Generously coat ribs in the spice mix. Wrap tightly in foil with a splash of apple juice to keep them moist."}, {t:"Slow Cook",d:"Bake at 150°C for 3 to 3.5 hours until the meat is pulling away from the bone and is incredibly tender."}, {t:"Grill Finish",d:"Unwrap the ribs, brush with BBQ sauce, and grill on high heat for 5 minutes per side until the glaze bubbles and chars."}] 
+    },
+    { 
+        title: "Philly Cheesesteak", 
+        cat: "American", 
+        servingSize: 450, 
+        hero: "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500", 
+        macros: {k:850, p:42, f:45, c:60}, 
+        inv: ["Flat Griddle"], 
+        tip: "Freeze your steak for 30-45 minutes before slicing. This makes it much easier to cut into paper-thin ribbons.", 
+        difficulty: 1, 
+        ingredients: [
+            {n:"Ribeye Strips", l:9.5, k:9.2, b:11.0, t:10.0, c:10.5, sale:true, old:13.5},
+            {n:"Long Buns", l:1.5, k:1.4, b:1.8, t:1.6, c:1.7, sale:true, old:2.2},
+            {n:"Provolone Cheese", l:3.2, k:3.0, b:3.8, t:3.4, c:3.6},
+            {n:"Bell Peppers", l:1.4, k:1.3, b:1.7, t:1.5, c:1.6},
+            {n:"Onion", l:0.3, k:0.25, b:0.4, t:0.35, c:0.4},
+            {n:"Butter", l:2.2, k:2.1, b:2.6, t:2.3, c:2.5},
+            {n:"Worcestershire Sauce", l:2.8, k:2.6, b:3.2, t:3.0, c:3.1}
+        ], 
+        steps:[{t:"Searing",d:"Cook thinly sliced onions and peppers. Move them to the side and sear the steak ribbons on very high heat for just 2 mins."}, {t:"Cheese Melt",d:"Mix meat and veggies together, shape into a long strip, and top with 3-4 slices of cheese. Let it melt completely."}, {t:"The Bun",d:"Place the opened bun face down over the melting cheese. Scoop everything up with a spatula and serve hot."}] 
+    },
+    { 
+        title: "Mac & Cheese", 
+        cat: "American", 
+        servingSize: 400, 
+        hero: "https://images.unsplash.com/photo-1543339308-43e59d6b73a6?w=500", 
+        macros: {k:720, p:28, f:35, c:80}, 
+        inv: ["Sauce Pot"], 
+        tip: "Use block cheese and grate it yourself. Pre-shredded cheese is coated in starch which makes the sauce grainy.", 
+        difficulty: 1, 
+        ingredients: [
+            {n:"Macaroni Pasta", l:1.0, k:0.95, b:1.3, t:1.1, c:1.2, sale:true, old:1.6},
+            {n:"Sharp Cheddar", l:2.8, k:2.6, b:3.5, t:3.0, c:3.2, sale:true, old:4.2},
+            {n:"Gouda Cheese", l:2.5, k:2.3, b:3.0, t:2.7, c:2.9},
+            {n:"Milk (1L)", l:0.8, k:0.75, b:1.1, t:0.9, c:1.0},
+            {n:"Butter", l:2.2, k:2.1, b:2.6, t:2.3, c:2.5, sale:true, old:3.2},
+            {n:"Mustard Powder", l:0.9, k:0.85, b:1.2, t:1.0, c:1.1},
+            {n:"Breadcrumbs", l:0.7, k:0.65, b:0.9, t:0.8, c:0.85}
+        ], 
+        steps:[{t:"The Roux",d:"Melt butter, whisk in flour, and gradually add milk until you have a thick white sauce (béchamel)."}, {t:"Cheese Sauce",d:"Remove from heat and stir in the cheese and mustard powder until the sauce is glossy and thick."}, {t:"Mixing",d:"Toss in the cooked macaroni. For a crispy top, sprinkle with breadcrumbs and broil in the oven for 5 minutes."}] 
+    },
+    { 
+        title: "Wiener Schnitzel", 
+        cat: "European", 
+        servingSize: 450, 
+        hero: "https://cookingtheglobe.com/wp-content/uploads/2016/01/veal-schnitzel-wiener-7.jpg", 
+        macros: {k:680, p:40, f:32, c:45}, 
+        inv: ["Mallet"], 
+        tip: "Shake the pan gently while frying. This keeps the schnitzel moving and helps the breading 'puff up' from the meat.", 
+        difficulty: 2, 
+        ingredients: [
+            {n:"Pork/Veal Loin", l:6.0, k:5.8, b:7.5, t:6.8, c:7.2, sale:true, old:8.5},
+            {n:"Breadcrumbs", l:0.8, k:0.75, b:1.2, t:0.95, c:1.1},
+            {n:"Flour", l:0.6, k:0.55, b:0.7, t:0.65, c:0.75},
+            {n:"Eggs (10pcs)", l:1.9, k:1.8, b:2.2, t:2.0, c:2.1, sale:true, old:2.8},
+            {n:"Lard/Butter", l:2.2, k:2.1, b:2.8, t:2.4, c:2.6},
+            {n:"Lemons", l:0.8, k:0.75, b:1.1, t:0.9, c:1.0, sale:true, old:1.5},
+            {n:"Potatoes", l:0.9, k:0.8, b:1.1, t:0.95, c:1.0}
+        ], 
+        steps:[{t:"Tenderizing",d:"Pound the meat with a mallet until it is evenly 4-5mm thick. This ensures quick and even cooking."}, {t:"Breading",d:"Coat in flour, then beaten eggs, then breadcrumbs. Do not press the crumbs into the meat; keep it light."}, {t:"Frying",d:"Fry in a generous amount of lard or butter for 2-3 mins per side. It should literally swim in the fat for the best crust."}] 
+    },
+    { 
+        title: "Seafood Paella", 
+        cat: "European", 
+        servingSize: 550, 
+        hero: "https://images.unsplash.com/photo-1534080564583-6be75777b70a?w=500", 
+        macros: {k:620, p:38, f:18, c:85}, 
+        inv: ["Paella Pan"], 
+        tip: "Do not stir the rice once the stock is added. You want to form a 'socarrat' — a delicious toasted crust at the bottom.", 
+        difficulty: 3, 
+        ingredients: [
+            {n:"Seafood Mix", l:9.5, k:9.2, b:12.0, t:10.5, c:11.2, sale:true, old:15.0},
+            {n:"Paella Rice", l:2.5, k:2.3, b:3.0, t:2.7, c:2.9},
+            {n:"Saffron Threads", l:4.2, k:4.0, b:5.5, t:4.8, c:5.2, sale:true, old:7.0},
+            {n:"Chicken Stock", l:1.2, k:1.1, b:1.5, t:1.3, c:1.4},
+            {n:"Chorizo", l:2.8, k:2.6, b:3.4, t:3.0, c:3.2},
+            {n:"Frozen Peas", l:1.1, k:1.0, b:1.4, t:1.2, c:1.3, sale:true, old:1.8},
+            {n:"Bell Peppers", l:1.4, k:1.3, b:1.7, t:1.5, c:1.6}
+        ], 
+        steps:[{t:"The Base",d:"Fry chorizo and peppers. Add rice and sauté until toasted. Pour in saffron-infused stock and let it simmer."}, {t:"Seafood",d:"After 10 mins, arrange the seafood (shrimp, mussels, squid) on top of the rice. Press them in slightly."}, {t:"Final Cook",d:"Cook until liquid is gone. Turn up heat for 1 min to toast the bottom. Let rest for 5 mins before serving."}] 
+    },
+    { 
+        title: "Greek Salad", 
+        cat: "European", 
+        servingSize: 320, 
+        hero: "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=500", 
+        macros: {k:320, p:8, f:28, c:12}, 
+        inv: ["Salad Bowl"], 
+        tip: "Don't chop the feta into tiny pieces. Serve it as one large block or large chunks on top for the traditional look.", 
+        difficulty: 1, 
+        ingredients: [
+            {n:"Feta Cheese", l:3.0, k:2.8, b:3.5, t:3.2, c:3.4, sale:true, old:4.5},
+            {n:"Kalamata Olives", l:2.8, k:2.6, b:3.4, t:3.0, c:3.2, sale:true, old:4.0},
+            {n:"Extra Virgin Oil", l:5.5, k:5.2, b:6.8, t:6.0, c:6.4},
+            {n:"Cucumber", l:0.8, k:0.75, b:1.1, t:0.9, c:1.0},
+            {n:"Cherry Tomatoes", l:1.9, k:1.8, b:2.4, t:2.1, c:2.3, sale:true, old:2.9},
+            {n:"Red Onion", l:0.4, k:0.35, b:0.5, t:0.4, c:0.45},
+            {n:"Dried Oregano", l:0.6, k:0.55, b:0.8, t:0.7, c:0.75}
+        ], 
+        steps:[{t:"Chop",d:"Cut cucumbers and tomatoes into large, rustic chunks. Thinly slice the red onion into half-moons."}, {t:"The Mix",d:"Combine veggies with olives in a bowl. Drizzle generously with high-quality olive oil and a splash of vinegar."}, {t:"Seasoning",d:"Add the feta cheese and sprinkle the entire salad with dried oregano. Do not add salt until the very end."}] 
+    },
+    { 
+        title: "Fish and Chips", 
+        cat: "European", 
+        servingSize: 480, 
+        hero: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSmimdUYoIPe-TAY6Ft4xn3LpuZT15w182xj1DYfx8JM0XZYbzkHccEJ75XXuNVOd66a3U1-Bqc_LWkaTUTX0QpFyNthKFepGQkFmdY&s=10", 
+        macros: {k:980, p:35, f:45, c:95}, 
+        inv: ["Deep Fryer"], 
+        tip: "Whisk the batter only until just combined. A few lumps are fine — over-whisking makes the coating tough instead of light.", 
+        difficulty: 2, 
+        ingredients: [
+            {n:"Cod Fillets", l:7.5, k:7.2, b:8.8, t:8.0, c:8.4, sale:true, old:10.5},
+            {n:"Baking Potatoes", l:1.1, k:1.0, b:1.4, t:1.2, c:1.3},
+            {n:"Beer (0.5L)", l:1.2, k:1.1, b:1.5, t:1.3, c:1.4, sale:true, old:1.8},
+            {n:"Plain Flour", l:0.6, k:0.55, b:0.7, t:0.65, c:0.7, sale:true, old:0.9},
+            {n:"Frying Oil (1L)", l:1.8, k:1.7, b:2.2, t:1.9, c:2.1},
+            {n:"Mushy Peas (Can)", l:1.4, k:1.3, b:1.7, t:1.5, c:1.6},
+            {n:"Vinegar", l:0.9, k:0.85, b:1.1, t:1.0, c:1.1}
+        ], 
+        steps:[{t:"Chips",d:"Cut potatoes into thick sticks. Rinse and dry perfectly. Deep fry once at 140°C, then again at 180°C for maximum crunch."}, {t:"Fish Batter",d:"Whisk cold beer into flour until it has the consistency of heavy cream. Dredge fish in flour, then the batter."}, {t:"Deep Frying",d:"Lower fish gently into 180°C oil. Fry for 5-7 mins until puffed and golden. Serve with vinegar and peas."}] 
+    },
+    { 
+        title: "French Onion Soup", 
+        cat: "European", 
+        servingSize: 450, 
+        hero: "https://images.unsplash.com/photo-1583953623787-ada99d338235?w=500", 
+        macros: {k:450, p:18, f:25, c:35}, 
+        inv: ["Deep Pot"], 
+        tip: "The onions should take 45-60 minutes to caramelize. If they aren't deep mahogany brown, the soup will lack depth.", 
+        difficulty: 2, 
+        ingredients: [
+            {n:"Yellow Onions", l:0.9, k:0.8, b:1.2, t:1.0, c:1.1, sale:true, old:1.8},
+            {n:"Beef Broth", l:1.5, k:1.4, b:1.8, t:1.6, c:1.7, sale:true, old:2.2},
+            {n:"Gruyère Cheese", l:4.2, k:4.0, b:5.5, t:4.8, c:5.2},
+            {n:"Baguette", l:0.8, k:0.75, b:1.1, t:0.9, c:1.0, sale:true, old:1.4},
+            {n:"Butter", l:2.2, k:2.1, b:2.6, t:2.3, c:2.5},
+            {n:"Thyme/Bay Leaf", l:0.9, k:0.85, b:1.2, t:1.0, c:1.1},
+            {n:"Dry Sherry", l:6.5, k:6.2, b:7.5, t:6.8, c:7.2}
+        ], 
+        steps:[{t:"Caramelizing",d:"Sauté onions in butter on low heat for an hour. Stir frequently. They should turn dark, sweet, and sticky."}, {t:"Deglazing",d:"Pour in the sherry and beef broth. Add herbs and simmer for 20 minutes to combine all the flavors."}, {t:"Gratiné",d:"Pour soup into bowls, top with a toasted baguette slice and a mountain of Gruyère. Broil until cheese is bubbly."}] 
+    },
+    { 
+        title: "Bratislavský Rožok", 
+        cat: "Bakery", 
+        servingSize: 80, 
+        hero: "https://www.vareni.cz/images/recepty/2/23117/1200x630.jpg", 
+        macros: {k:380, p:6, f:22, c:40}, 
+        inv: ["Baking Tray"], 
+        tip: "Apply the first egg wash, let it dry in a cold place, then apply the second. This creates the signature 'marbled' surface.", 
+        difficulty: 3, 
+        ingredients: [
+            {n:"Walnuts", l:4.5, k:4.2, b:5.5, t:4.8, c:5.2, sale:true, old:6.5},
+            {n:"Premium Butter", l:2.5, k:2.3, b:3.0, t:2.7, c:2.9, sale:true, old:3.5},
+            {n:"Pastry Flour", l:0.9, k:0.85, b:1.1, t:0.95, c:1.0},
+            {n:"Poppy Seeds", l:1.2, k:1.1, b:1.5, t:1.3, c:1.4, sale:true, old:1.8},
+            {n:"Eggs (10pcs)", l:1.9, k:1.8, b:2.2, t:2.0, c:2.1},
+            {n:"Caster Sugar", l:1.0, k:0.9, b:1.2, t:1.1, c:1.15},
+            {n:"Milk", l:0.8, k:0.75, b:0.9, t:0.85, c:0.85}
+        ], 
+        steps:[{t:"Dough Prep",d:"Make a rich, buttery yeast dough. It should be smooth and slightly firm. Let it rest for 30 mins in the fridge."}, {t:"Filling",d:"Shape walnut filling into crescents and poppy filling into C-shapes. The ratio of filling to dough should be 1:1."}, {t:"Baking",d:"After the double egg wash has dried and cracked slightly, bake at 200°C for 12 mins until deep golden brown."}] 
+    },
+    { 
+        title: "Classic Apple Pie", 
+        cat: "Bakery", 
+        servingSize: 180, 
+        hero: "https://images.unsplash.com/photo-1568571780765-9276ac8b75a2?w=500", 
+        macros: {k:420, p:4, f:18, c:65}, 
+        inv: ["Pie Dish"], 
+        tip: "Pre-cook the apple filling for 5 minutes and drain the juice. This prevents the bottom crust from getting soggy.", 
+        difficulty: 2, 
+        ingredients: [
+            {n:"Fresh Apples", l:1.8, k:1.7, b:2.4, t:2.0, c:2.2, sale:true, old:3.0},
+            {n:"Shortcrust Dough", l:1.5, k:1.4, b:2.0, t:1.7, c:1.9, sale:true, old:2.5},
+            {n:"Cinnamon Powder", l:0.9, k:0.85, b:1.1, t:0.95, c:1.0},
+            {n:"Brown Sugar", l:1.2, k:1.1, b:1.5, t:1.3, c:1.4, sale:true, old:1.9},
+            {n:"Butter", l:2.2, k:2.1, b:2.6, t:2.3, c:2.5},
+            {n:"Cornstarch", l:0.7, k:0.65, b:0.9, t:0.8, c:0.85},
+            {n:"Vanilla Ice Cream", l:3.5, k:3.3, b:4.2, t:3.8, c:4.0}
+        ], 
+        steps:[{t:"Apples",d:"Peel and slice apples. Toss with cinnamon, sugar, and cornstarch. Let sit so the juices release."}, {t:"Assembly",d:"Line the dish with dough, add apples, and cover with a second layer or a lattice pattern. Seal the edges tight."}, {t:"Bake",d:"Bake at 180°C for 45-55 mins. The crust should be golden and the filling should be bubbling through the vents."}] 
+    },
+    { 
+        title: "Chocolate Brownies", 
+        cat: "Bakery", 
+        servingSize: 120, 
+        hero: "https://images.unsplash.com/photo-1464347744102-11db6282f854?w=500", 
+        macros: {k:350, p:5, f:22, c:38}, 
+        inv: ["Square Tin"], 
+        tip: "Take them out when a toothpick has a few moist crumbs. If it comes out clean, you've overbaked them!", 
+        difficulty: 1, 
+        ingredients: [
+            {n:"Dark Chocolate", l:3.2, k:3.0, b:3.8, t:3.4, c:3.6, sale:true, old:4.5},
+            {n:"Eggs (10pcs)", l:1.9, k:1.8, b:2.2, t:2.0, c:2.1, sale:true, old:2.8},
+            {n:"Butter", l:2.2, k:2.1, b:2.6, t:2.3, c:2.5},
+            {n:"Cocoa Powder", l:1.2, k:1.1, b:1.5, t:1.3, c:1.4, sale:true, old:1.8},
+            {n:"Cane Sugar", l:1.1, k:1.0, b:1.4, t:1.2, c:1.3},
+            {n:"Walnuts", l:4.2, k:4.0, b:5.0, t:4.5, c:4.8, sale:true, old:6.5},
+            {n:"Sea Salt", l:0.3, k:0.25, b:0.4, t:0.35, c:0.4}
+        ], 
+        steps:[{t:"Melting",d:"Slowly melt the dark chocolate and butter together. Whisk in the sugar until the mixture is glossy and smooth."}, {t:"Batter",d:"Beat in eggs one by one. Gently fold in cocoa powder and chopped walnuts. Sprinkle a pinch of sea salt on top."}, {t:"Baking",d:"Bake at 170°C for exactly 25 minutes. Let them cool completely in the tin to set before slicing into squares."}] 
+    },
+    { 
+        title: "Strawberry Tart", 
+        cat: "Bakery", 
+        servingSize: 200, 
+        hero: "https://images.unsplash.com/photo-1519915028121-7d3463d20b13?w=500", 
+        macros: {k:480, p:7, f:28, c:55}, 
+        inv: ["Tart Mold"], 
+        tip: "Brush the baked crust with a thin layer of melted white chocolate. This creates a barrier so the cream doesn't make it soft.", 
+        difficulty: 2, 
+        ingredients: [
+            {n:"Fresh Strawberries", l:4.5, k:4.2, b:5.5, t:4.8, c:5.2, sale:true, old:7.0},
+            {n:"Mascarpone", l:3.5, k:3.3, b:4.2, t:3.8, c:4.0, sale:true, old:5.5},
+            {n:"Pastry Shell", l:2.5, k:2.3, b:3.0, t:2.7, c:2.8},
+            {n:"Heavy Cream", l:1.5, k:1.4, b:1.8, t:1.6, c:1.7, sale:true, old:2.2},
+            {n:"Icing Sugar", l:0.8, k:0.75, b:1.0, t:0.9, c:0.95},
+            {n:"Mint Leaves", l:1.2, k:1.1, b:1.5, t:1.3, c:1.4, sale:true, old:1.8},
+            {n:"Gelatin Slices", l:0.9, k:0.85, b:1.2, t:1.0, c:1.1}
+        ], 
+        steps:[{t:"The Shell",d:"Blind bake the shortcrust shell with weights until it is fully cooked and crisp. Let it cool completely."}, {t:"Filling",d:"Whisk mascarpone with cream and sugar until thick. Spread into the shell. Arrange fresh strawberries on top."}, {t:"Glazing",d:"Brush strawberries with a little strawberry jam or gelatin to give them a professional shine. Garnish with mint."}] 
+    },
+    { 
+        title: "Homemade Croissants", 
+        cat: "Bakery", 
+        servingSize: 110, 
+        hero: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=500", 
+        macros: {k:410, p:8, f:26, c:38}, 
+        inv: ["Rolling Pin"], 
+        tip: "Keep everything cold! If the butter melts into the dough during rolling, you lose the flaky layers.", 
+        difficulty: 3, 
+        ingredients: [
+            {n:"Extra Butter", l:3.5, k:3.3, b:4.5, t:3.8, c:4.2, sale:true, old:5.5},
+            {n:"High Protein Flour", l:1.2, k:1.1, b:1.5, t:1.3, c:1.4, sale:true, old:1.9},
+            {n:"Fresh Yeast", l:0.4, k:0.35, b:0.5, t:0.45, c:0.5},
+            {n:"Whole Milk", l:0.8, k:0.75, b:1.1, t:0.9, c:1.0, sale:true, old:1.4},
+            {n:"Sugar", l:0.9, k:0.85, b:1.0, t:0.9, c:1.05},
+            {n:"Salt", l:0.3, k:0.25, b:0.4, t:0.3, c:0.35},
+            {n:"Egg (for wash)", l:0.4, k:0.35, b:0.5, t:0.4, c:0.45}
+        ], 
+        steps:[{t:"Lamination",d:"Roll butter into a flat square. Wrap in dough and roll out. Fold into thirds. Repeat this process 3 times, chilling in between."}, {t:"Shaping",d:"Cut dough into long triangles. Roll them up from the wide end. Let them rise for 2 hours until they double in size."}, {t:"Baking",d:"Egg wash twice. Bake at 200°C for 10 mins, then 180°C for 10 mins until dark golden and shattering when bitten."}] 
+    }
+];    let currentCat = 'All';
+    let timerInterval = null;
+    let timerSeconds = 0;
+
+    function render() {
+        const grid = document.getElementById('recipe-grid');
+        const search = document.getElementById('recipe-search').value.toLowerCase();
+        const sort = document.getElementById('sort-order').value;
+        let list = RECIPES.filter(r => (currentCat==='All' || r.cat===currentCat) && r.title.toLowerCase().includes(search));
+        
+        if(sort === 'sale') {
+            list.sort((a,b) => (b.ingredients.filter(i=>i.sale).length) - (a.ingredients.filter(i=>i.sale).length));
+        } else if(sort === 'kcal-low') {
+            list.sort((a,b) => a.macros.k - b.macros.k);
+        } else if(sort === 'price-low') {
+            list.sort((a,b) => {
+                const priceA = a.ingredients.reduce((sum, i) => sum + i.l, 0);
+                const priceB = b.ingredients.reduce((sum, i) => sum + i.l, 0);
+                return priceA - priceB;
+            });
+        } else if(sort === 'diff-low') {
+            list.sort((a,b) => a.difficulty - b.difficulty);
+        }
+
+        grid.innerHTML = list.map(r => `
+            <div class="recipe-item-card" onclick="selectFromGrid('${r.title.replace(/'/g, "\\'")}')">
+                ${r.ingredients.some(i=>i.sale) ? `<div class="sale-badge">⚡ ${r.ingredients.filter(i=>i.sale).length} SALES</div>` : ''}
+                <img src="${r.hero}">
+                <div class="recipe-item-info">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:10px; font-weight:800; color:var(--primary-dark);">${r.cat.toUpperCase()}</span>
+                        <span style="font-size:10px; font-weight:700; color:var(--text-light); text-transform:uppercase;">${'★'.repeat(r.difficulty)}${'☆'.repeat(3-r.difficulty)}</span>
+                    </div>
+                    <h4 style="margin:5px 0; font-size:14px;">${r.title}</h4>
+                    <div style="font-size:11px; font-weight:700; color:var(--text-light);">🔥 ${r.macros.k} kcal</div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function selectFromGrid(title) {
+        const r = RECIPES.find(x => x.title === title);
+        const container = document.getElementById('results-container');
+        container.innerHTML = '';
+        
+        ['Lidl', 'Billa'].forEach(store => {
+            const key = store === 'Lidl' ? 'l' : 'b';
+            const total = r.ingredients.reduce((s,i) => s + i[key], 0);
+            container.innerHTML += `
+                <div style="background:white; padding:25px; border-radius:24px; border:2px solid var(--border);">
+                    <div style="font-weight:800; font-size:12px; opacity:0.6;">${store.toUpperCase()} MARKET</div>
+                    <div style="font-size:36px; font-weight:900; margin:10px 0;">€${total.toFixed(2)}</div>
+                    <div style="margin:15px 0;">
+                        ${r.ingredients.map(i => `<div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #f1f5f9; font-size:14px;">
+                            <span>${i.n}</span>
+                            <span>${i.sale ? `<span style="text-decoration:line-through; font-size:12px; opacity:0.5;">€${i.old}</span> ` : ''} <b>€${i[key]}</b></span>
+                        </div>`).join('')}
+                    </div>
+                    <button class="btn-primary" onclick="goToFinalRecipe('${r.title.replace(/'/g, "\\'")}','${store}',${total})">Buy & Cook</button>
+                </div>
+            `;
+        });
+        showScreen('results');
+    }
+
+    function goToFinalRecipe(title, store, price) {
+        const r = RECIPES.find(x => x.title === title);
+        document.getElementById('recipe-img').src = r.hero;
+        document.getElementById('recipe-title').innerText = r.title;
+        document.getElementById('recipe-meta').innerText = `🛒 Purchased via ${store} for €${price.toFixed(2)}`;
+        document.getElementById('inventory-list').innerHTML = "🛠️ <b>Required Tools:</b> " + r.inv.join(", ");
+        document.getElementById('pro-tip').innerHTML = `<b>Chef's Tip:</b> ${r.tip}`;
+        
+        document.getElementById('recipe-nutrients').innerHTML = `
+            <div class="nutrient-item"><span class="nutrient-val">${r.macros.k}</span><span class="nutrient-label">kcal</span></div>
+            <div class="nutrient-item"><span class="nutrient-val">${r.macros.p}g</span><span class="nutrient-label">Protein</span></div>
+            <div class="nutrient-item"><span class="nutrient-val">${r.macros.f}g</span><span class="nutrient-label">Fats</span></div>
+            <div class="nutrient-item"><span class="nutrient-val">${r.macros.c}g</span><span class="nutrient-label">Carbs</span></div>
+        `;
+
+        document.getElementById('ingredients-list').innerHTML = r.ingredients.map(i => `
+            <div class="ingredient-card" onclick="this.classList.toggle('checked')">
+                <div class="checkbox"></div><span>${i.n}</span>
+            </div>
+        `).join('');
+
+        document.getElementById('steps-list').innerHTML = r.steps.map((s, idx) => `
+            <div class="step-item">
+                <div class="step-num">${idx+1}</div>
+                <div><b>${s.t}</b><p style="margin:4px 0; font-size:14px; color:var(--text-light);">${s.d}</p></div>
+            </div>
+        `).join('');
+        
+        showScreen('recipe-card');
+    }
+
+    function setTimer(m) { resetTimer(); timerSeconds = m * 60; updateTimerDisplay(); }
+    function toggleTimer() {
+        const btn = document.getElementById('timer-toggle');
+        if (timerInterval) { 
+            clearInterval(timerInterval); 
+            timerInterval = null; 
+            btn.innerText = "START"; 
+        } else {
+            if (timerSeconds <= 0) return;
+            btn.innerText = "PAUSE";
+            timerInterval = setInterval(() => {
+                timerSeconds--; 
+                updateTimerDisplay();
+                if (timerSeconds <= 0) { 
+                    clearInterval(timerInterval); 
+                    timerInterval = null; 
+                    alert("Timer Finished!"); 
+                    btn.innerText = "START"; 
+                }
+            }, 1000);
+        }
+    }
+    function resetTimer() { 
+        clearInterval(timerInterval); 
+        timerInterval = null; 
+        timerSeconds = 0; 
+        updateTimerDisplay(); 
+        document.getElementById('timer-toggle').innerText = "START"; 
+    }
+    function updateTimerDisplay() {
+        const m = Math.floor(timerSeconds/60); 
+        const s = timerSeconds%60;
+        document.getElementById('timer-display').innerText = `${m}:${s.toString().padStart(2,'0')}`;
+    }
+    function setCategory(c, el) { 
+        currentCat = c; 
+        document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); 
+        el.classList.add('active'); 
+        render(); 
+    }
+    function showScreen(s) { 
+        document.querySelectorAll('.app-container > div').forEach(d => { if(d.id) d.classList.add('hidden'); }); 
+        document.getElementById(s + '-screen').classList.remove('hidden'); 
+        window.scrollTo(0,0); 
+    }
+
+    render();
+</script>
+</body>
+</html>
